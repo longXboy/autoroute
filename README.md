@@ -104,6 +104,6 @@ docker run --privileged --net=host \
        -v /etc/viz-autoroute:/app/config \
        -v /etc/resolv.conf:/etc/resolv.conf \
        -p 53:53/udp \
-       -p 18123:18123/tcp \
+       -p <Shadowsocks Server Port>:18123/tcp \
        viz-autoroute
 ```
