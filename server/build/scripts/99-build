@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# enable strict mode
+set -e
+
+# get number of cpus for building faster
+N_CPU=$(grep -c '^processor' /proc/cpuinfo)
+
+# build shadowsocks-libev
+echo "Configure & build shadowsocks-libev"
+cd "$BPATH"
+
+./configure
+make -j $N_CPU
+
+# distribute to DPATH
+make DESTDIR="$DPATH" install
+
+# notify user the process is finished
+echo 'Done!'
