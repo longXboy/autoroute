@@ -8,6 +8,7 @@
 
 * [shadowsocks-libev](https://github.com/shadowsocks/shadowsocks-libev)
 * [ChinaDNS](https://github.com/shadowsocks/ChinaDNS)
+* [pdnsd](http://members.home.nl/p.a.rombouts/pdnsd/)
 * [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html)
 * [netfilter/iptables](http://www.netfilter.org/)
 * [supervisord](http://supervisord.org/)
@@ -24,8 +25,9 @@ GFW 墙一个网站一般有两种策略：
 DNS 污染使用 ISP 节点对用户 DNS 请求的 UDP 封包进行劫持篡改，
 使得用户获取错误的 IP 地址，这个 IP 通常是 GFW 的服务器，用来侦测翻墙服务。
 
-对此，ChinaDNS 使用多组 DNS 服务器（包括一个可靠的国外 DNS 服务器）进行比对，
-优先解析到国内的 IP，同时过滤 GFW 的服务器。
+对此这里首先使用 pdnsd 进行 TCP 而不是 UDP 的域名解析，由于解析时使用 shadowsocks-libev 通讯，可以获得可靠的国外 DNS 服务器解析结果。
+
+接下来 ChinaDNS 使用多组 DNS 服务器（包括上述的一个可靠的国外 DNS 服务器）进行比对， 优先解析到国内的 IP，同时过滤 GFW 的服务器。
 
 为了保证解析速度，使用 dnsmasq 对结果进行缓存。
 
