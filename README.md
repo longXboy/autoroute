@@ -109,3 +109,7 @@ docker run --privileged --net=host \
        -p <Shadowsocks Server Port>:18123/tcp \
        viz-autoroute
 ```
+
+## TODO
+
+* 修复容器无法结束的错误
