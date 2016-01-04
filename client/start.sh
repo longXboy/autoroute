@@ -3,6 +3,7 @@
 set -e
 
 # check environment variables
+echo "Check environment variables..."
 [ -z "$SERVER_ADDR" ] \
     && { echo 'Fatal: Server address was not set!'; exit 1; }
 [ -z "$SERVER_PORT" ] \
@@ -18,8 +19,40 @@ iptables -nL 2> /dev/null > /dev/null \
 CONFIG_DIR='/app/config'
 GITHUB_RAW='https://raw.githubusercontent.com'
 
+echo "Write configurations..."
+
+# reset pdnsd configuration
+cat << EOF > /etc/pdnsd.conf
+global {
+    perm_cache=2048;
+    cache_dir="/var/cache/pdnsd";
+    run_as="pdnsd";
+    server_port = 5553;
+    server_ip = any;
+    status_ctl = on;
+    paranoid=on;
+    query_method=tcp_only;
+    min_ttl=15m;
+    max_ttl=1w;
+    timeout=10;
+}
+
+server {
+    label= "remotedns";
+    ip = 8.8.8.8;
+    root_server = on;
+    uptest = none;
+}
+EOF
+
 # reset dnsmasq configuration
-echo -n 'no-resolv\nserver=127.0.0.1#5453\n' > /etc/dnsmasq.conf
+cat << EOF > /etc/dnsmasq.conf
+no-resolv
+cache-size=2048
+server=127.0.0.1#5453
+EOF
+
+echo "Initialize configuration..."
 
 # prepare config directory
 [ ! -d "$CONFIG_DIR" ] && rm -rf "$CONFIG_DIR" && mkdir -p "$CONFIG_DIR"
@@ -57,11 +90,15 @@ cleanup() {
     pkill supervisord || true
 }
 
+echo "Setup the trap..."
+
 # clean up before exit
-trap "cleanup; kill $$" HUP INT TERM
+trap "cleanup; kill $$; echo 'exiting...'; exit 0" HUP INT TERM
 
 # also clean up now if needed
 cleanup
+
+echo "Setup iptables..."
 
 # create new chain for shadowsocks
 iptables -t nat -N SHADOWSOCKS
@@ -85,17 +122,22 @@ cat "${CONFIG_DIR}/chnroute.txt" | while read range; do
 done
 
 # for other connections, go through the shadowsocks redirection service
+DOCKER_GATEWAY="$(ip r | grep docker0 | xargs -n1 | tail -n1)"
 iptables -t nat -A SHADOWSOCKS -p tcp \
-         -j DNAT --to-destination "172.17.42.1:$SERVER_PORT"
+         -j DNAT --to-destination "${DOCKER_GATEWAY}:${SERVER_PORT}"
 
 # insert chain to the front of PREROUTING & OUTPUT chains
 iptables -t nat -I PREROUTING -p tcp -j SHADOWSOCKS
 iptables -t nat -I OUTPUT -p tcp -j SHADOWSOCKS
 
+echo "Apply DNS server..."
+
 # update resolv.conf
 echo 'nameserver 127.0.0.1' > /etc/resolv.conf
 
 ########## finish applying iptables rules ##########
+
+echo "Start up the service..."
 
 # export environment variables and start the supervisord
 export PASSWORD
