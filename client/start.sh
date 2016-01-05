@@ -123,13 +123,19 @@ cat "${CONFIG_DIR}/chnroute.txt" | while read range; do
 done
 
 # for other connections, go through the shadowsocks redirection service
-DOCKER_GATEWAY="$(ip r | grep docker0 | xargs -n1 | tail -n1)"
+[ -z "$INTERFACE" ] && INTERFACE=docker0
+[ -z "$GATEWAY_PORT" ] && GATEWAY_PORT="$SERVER_PORT"
+DOCKER_GATEWAY="$(ip r | grep "$INTERFACE" | xargs -n1 | tail -n1)"
 iptables -t nat -A SHADOWSOCKS -p tcp \
-         -j DNAT --to-destination "${DOCKER_GATEWAY}:${SERVER_PORT}"
+         -j DNAT --to-destination "${DOCKER_GATEWAY}:${GATEWAY_PORT}"
 
 # insert chain to the front of PREROUTING & OUTPUT chains
 iptables -t nat -I PREROUTING -p tcp -j SHADOWSOCKS
 iptables -t nat -I OUTPUT -p tcp -j SHADOWSOCKS
+
+echo "Load runtime configurations..."
+
+[ -d /scripts ] && find /scripts -type f -executable | sort | xargs -n1 sh -c
 
 echo "Apply DNS server..."
 
