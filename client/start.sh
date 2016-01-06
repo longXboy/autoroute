@@ -2,6 +2,9 @@
 
 set -e
 
+# set -x for debug mode
+[ -n "$DEBUG" ] && set -x
+
 # check environment variables
 echo "Check environment variables..."
 [ -z "$SERVER_ADDR" ] \
@@ -93,7 +96,7 @@ cleanup() {
 echo "Setup the trap..."
 
 # clean up before exit
-trap "cleanup; kill $$; echo 'exiting...'; exit 0" HUP INT TERM
+trap "cleanup; kill -9 $$; printf '\nexiting...\n'; exit 0" HUP INT TERM
 
 # also clean up now if needed
 cleanup

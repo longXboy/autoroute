@@ -123,7 +123,9 @@ docker run --privileged --net=host \
 
 ## TODO
 
-* 修复容器无法结束的错误
+* 监听 /etc/resolv.conf 的修改以及设置成目标 DNS 地址。
+* 实现清空 DNS 缓存。
+* 实现 obfsproxy 混淆的版本。
 
 [1]:https://github.com/shadowsocks/shadowsocks-libev
 [2]:https://github.com/shadowsocks/ChinaDNS
