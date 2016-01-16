@@ -49,11 +49,24 @@ server {
 EOF
 
 # reset dnsmasq configuration
-cat << EOF > /etc/dnsmasq.conf
+[ -f "${CONFIG_DIR}/bypass.txt" ] \
+  && BYPASS_LIST="$(cat "${CONFIG_DIR}/bypass.txt" | xargs | sed 's/ /\//g')"
+DEFAULT_DNS='114.114.114.114'
+if [ -n "$BYPASS_LIST" ]; then
+  cat << EOF > /etc/dnsmasq.conf
+no-resolv
+strict-order
+cache-size=2048
+server=/${BYPASS_LIST}/${DEFAULT_DNS}
+server=127.0.0.1#5453
+EOF
+else
+  cat << EOF > /etc/dnsmasq.conf
 no-resolv
 cache-size=2048
 server=127.0.0.1#5453
 EOF
+fi
 
 echo "Initialize configuration..."
 
@@ -74,6 +87,11 @@ echo "Initialize configuration..."
       > "${CONFIG_DIR}/chnroute.txt"
 
 ########## start applying iptables rules ##########
+
+# save old dns list
+OLD_DNS="$(cat /etc/resolv.conf | grep '^nameserver [0-9.]*$' \
+                                | grep -o '[0-9.]*' | xargs | sed 's/ /,/g')"
+[ -n "$OLD_DNS" ] && OLD_DNS="${OLD_DNS},"
 
 # backup current resolv.conf
 cp /etc/resolv.conf /tmp/resolv.conf
@@ -154,6 +172,7 @@ export PASSWORD
 export SERVER_ADDR
 export SERVER_PORT
 export ENCRYPT_METHOD
+export OLD_DNS
 /usr/bin/supervisord -c /app/supervisord.conf &
 
 # wait until stopped
