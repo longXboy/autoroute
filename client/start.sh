@@ -146,9 +146,9 @@ done
 # for other connections, go through the shadowsocks redirection service
 [ -z "$INTERFACE" ] && INTERFACE=docker0
 [ -z "$GATEWAY_PORT" ] && GATEWAY_PORT="$SERVER_PORT"
-DOCKER_GATEWAY="$(ip r | grep "$INTERFACE" | xargs -n1 | tail -n1)"
+GATEWAY_IP="$(ip r | grep "$INTERFACE" | xargs -n1 | tail -n1)"
 iptables -t nat -A SHADOWSOCKS -p tcp \
-         -j DNAT --to-destination "${DOCKER_GATEWAY}:${GATEWAY_PORT}"
+         -j DNAT --to-destination "${GATEWAY_IP}:${GATEWAY_PORT}"
 
 # insert chain to the front of PREROUTING & OUTPUT chains
 iptables -t nat -I PREROUTING -p tcp -j SHADOWSOCKS
@@ -161,7 +161,7 @@ echo "Load runtime configurations..."
 echo "Apply DNS server..."
 
 # update resolv.conf
-echo 'nameserver 127.0.0.1' > /etc/resolv.conf
+echo "nameserver ${GATEWAY_IP}" > /etc/resolv.conf
 
 ########## finish applying iptables rules ##########
 
