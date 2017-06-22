@@ -1,0 +1,37 @@
+version: '2'
+
+services:
+  redir:
+    image: mritd/shadowsocks
+    network_mode: host
+    devices:
+    - /dev/urandom:/dev/random
+    - /dev/urandom:/dev/urandom
+    restart: always
+    environment:
+    - SS_MODULE=ss-redir
+    - SS_CONFIG=-s 127.0.0.1 -p 443 -b 0.0.0.0 -l 1080 -k ileiJ2z0VLr*Q2zW -m chacha20-ietf-poly1305 -v --fast-open -u
+    
+
+#  local:
+#    image: mritd/shadowsocks
+#    network_mode: host
+#    devices:
+#    - /dev/urandom:/dev/random
+#    - /dev/urandom:/dev/urandom
+#    environment:
+#    - SS_MODULE=ss-local
+#    - SS_CONFIG=-s 127.0.0.1 -p 443 -b 127.0.0.1 -l 1081 -k ileiJ2z0VLr*Q2zW -m chacha20-ietf-poly1305 -v --fast-open -u
+#    restart: always
+
+
+  tunnel:
+    image: mritd/shadowsocks
+    network_mode: host
+    devices:
+    - /dev/urandom:/dev/random
+    - /dev/urandom:/dev/urandom
+    environment:
+    - SS_MODULE=ss-tunnel
+    - SS_CONFIG=-s 127.0.0.1 -m chacha20-ietf-poly1305 -k ileiJ2z0VLr*Q2zW -l 5300 -L 8.8.8.8:53 -p 443 -u -v
+    restart: always

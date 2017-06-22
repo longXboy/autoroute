@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  lb:
+    image: nginx:stable-alpine
+    network_mode: host
+    volumes:
+    - ./nginx.conf:/etc/nginx/nginx.conf 
+    - ./mirror.conf:/etc/nginx/conf.d/default.conf
+    command: [nginx-debug, '-g', 'daemon off;']
+    restart: always

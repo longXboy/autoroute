@@ -1,0 +1,20 @@
+version: '2'
+services:
+  haproxy:
+    container_name: shadowsocks_haproxy
+    image: haproxy:1.7.5
+    restart: always
+    network_mode: host
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - /var/run:/var/run
+  telegraf:
+    container_name: haproxy_telegraf
+    image: telegraf:1.2.1
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run:/var/run
+    depends_on:
+      - haproxy
+    network_mode: host
+

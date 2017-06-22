@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  dnsmasq-chinadns:
+    image: vimagick/chinadns
+    network_mode: host
+    volumes:
+    - ./services.conf:/etc/supervisor/conf.d/services.conf
+    - ../cidr_cn:/etc/chnroute.txt
+    #ports:
+    #- "53:53"
+    #- "53:53/udp"
+    cap_add:
+    - NET_ADMIN
+    restart: always
+    
+    
