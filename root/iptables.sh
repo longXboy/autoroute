@@ -40,3 +40,4 @@ echo 1 > /proc/sys/net/ipv4/ipforward
 docker-compose -f nginx/docker-compose.yml up -d
 docker-compose -f shadowsocks/docker-compose.yml up -d
 docker-compose -f dns/docker-compose.yml up -d 
+docker-compose -f haproxy/docker-compose.yml up -d 
